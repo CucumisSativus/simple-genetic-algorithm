@@ -6,21 +6,28 @@ package SGA {
 
 import SGA.Main.{SignificantDigitsNum, IntervalBoundaries}
 
-class Chromosome(bitNumber: Int) {
+class Chromosome(bitNumber: Int, boundaries: IntervalBoundaries = new IntervalBoundaries(0.5, 2.5), significantDigitsNum: SignificantDigitsNum = 6) {
+
   private var _bits = (generateBits)
   private val _length = bitNumber
+  private val _intervalBegin = boundaries._1
+  private val _intervalEnd = boundaries._2
+  private val _significantDigits = significantDigitsNum
+
 
   def bits = _bits
-
   def length = _length
+  def intervalBegin = _intervalBegin
+  def intervalEnd = _intervalEnd
+  def significantDigits = _significantDigits
 
   def cross(index: Int, other: Chromosome): (Chromosome, Chromosome) = {
     val thisDivided = divide(index)
     val otherDivided = other.divide(index)
     val newThis = new Chromosome(length)
     val newOther = new Chromosome(other.length)
-    newThis._bits = thisDivided._1 ++ otherDivided._2
-    newOther._bits = otherDivided._1 ++ thisDivided._2
+    newThis._bits = thisDivided._1.++(otherDivided._2)
+    newOther._bits = otherDivided._1.++(thisDivided._2)
     (newThis, newOther)
   }
 
@@ -58,6 +65,11 @@ class Chromosome(bitNumber: Int) {
   def value(boundaries: IntervalBoundaries, significantDigitsNum: SignificantDigitsNum): Double = {
     (boundaries._1 + bitsToDecimal() * (boundaries._2 - boundaries._1)) / (pow(2.toDouble, significantDigitsNum.toDouble) + 1)
   }
+
+  def value(): Double ={
+    value((intervalBegin, intervalEnd), significantDigits)
+  }
+
 }
 
 }

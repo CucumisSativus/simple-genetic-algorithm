@@ -4,19 +4,23 @@
 import scala.math._
 package SGA {
 
-import SGA.Main.{SignificantDigitsNum, IntervalBoundaries}
+import SGA.Main.{SignificantDigitsNum, IntervalBoundaries, ChromsomeConfiguration}
 
-class Chromosome(bitNumber: Int, boundaries: IntervalBoundaries = new IntervalBoundaries(0.5, 2.5), significantDigitsNum: SignificantDigitsNum = 6) {
+class Chromosome(boundaries: IntervalBoundaries , significantDigitsNum:  SignificantDigitsNum) {
 
+  def this(chromsomeConfiguration: ChromsomeConfiguration) {
+    this(chromsomeConfiguration._1, chromsomeConfiguration._2)
+  }
+
+  private val _length = (calculateBitLength(boundaries, significantDigits))
   private var _bits = (generateBits)
-  private val _length = bitNumber
   private val _intervalBegin = boundaries._1
   private val _intervalEnd = boundaries._2
   private val _significantDigits = significantDigitsNum
 
 
-  def bits = _bits
   def length = _length
+  def bits = _bits
   def intervalBegin = _intervalBegin
   def intervalEnd = _intervalEnd
   def significantDigits = _significantDigits
@@ -24,8 +28,8 @@ class Chromosome(bitNumber: Int, boundaries: IntervalBoundaries = new IntervalBo
   def cross(index: Int, other: Chromosome): (Chromosome, Chromosome) = {
     val thisDivided = divide(index)
     val otherDivided = other.divide(index)
-    val newThis = new Chromosome(length)
-    val newOther = new Chromosome(other.length)
+    val newThis = new Chromosome((intervalBegin, intervalEnd), significantDigits)
+    val newOther = new Chromosome((other.intervalBegin, other.intervalEnd), other.significantDigits)
     newThis._bits = thisDivided._1.++(otherDivided._2)
     newOther._bits = otherDivided._1.++(thisDivided._2)
     (newThis, newOther)
@@ -47,7 +51,7 @@ class Chromosome(bitNumber: Int, boundaries: IntervalBoundaries = new IntervalBo
   }
 
   def generateBits: Array[Int] = {
-    (1 to bitNumber).map(
+    (1 to length).map(
       x => {
         scala.util.Random.nextInt(2)
       }
@@ -70,6 +74,10 @@ class Chromosome(bitNumber: Int, boundaries: IntervalBoundaries = new IntervalBo
     value((intervalBegin, intervalEnd), significantDigits)
   }
 
+  private def calculateBitLength(boundaries: IntervalBoundaries, significantDigitsNum: SignificantDigitsNum): Int = {
+    val leftSide = (boundaries._2 - boundaries._1) * pow(10.toDouble, significantDigitsNum.toDouble) + 1
+    ceil(log(leftSide.toDouble) / log(2.toDouble)).toInt
+  }
 }
 
 }

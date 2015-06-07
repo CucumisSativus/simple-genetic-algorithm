@@ -18,15 +18,12 @@ object Main {
   val crossingProbability = 0.3
   val reproductionProbability = 1- mutationProbability - crossingProbability
   val maxGenerationsNum = 2500
-  val maxRunNum = 1
+  val maxRunNum = 10
+  val showDebug = false
 
   def functionToOptimize(x: Double): Double ={
     (exp(x) * sin(10 * Pi * x) +1)/ (x +5)
   }
-
-  // global variables
-
-
 
   def generateInitialPopulation(initialPopulationSize : Int, configuration: ChromsomeConfiguration) : ChromosomeArr ={
     Array.fill(initialPopulationSize)(new Chromosome(configuration))
@@ -55,9 +52,11 @@ object Main {
     probabilities.last._1 //shouldnt land here but anyway
   }
   def performMutation(currentPopulation: ChromosomeArr): ChromosomeArr ={
+    if(showDebug) println("Performing mutation")
     Array.fill(1)(findSolutionOnRoulette(currentPopulation).mutate).filter(_.isInDomain())
   }
   def performCrossing(currentPopulation: ChromosomeArr): ChromosomeArr ={
+    if(showDebug) println("Performing corssing")
     val (sol1, sol2) = findSolutionOnRoulette(currentPopulation).cross(findSolutionOnRoulette(currentPopulation))
     val chromosomes = new ChromosomeArr(2)
     chromosomes(0) = sol1
@@ -66,15 +65,16 @@ object Main {
   }
 
   def performReproduction(currrentPopulation: ChromosomeArr): ChromosomeArr ={
+    if(showDebug) println("Performing reproduction")
     Array.fill(1)(findSolutionOnRoulette(currrentPopulation)).filter(_.isInDomain())
   }
   def fillNewPopulation(currentPopulation: ChromosomeArr): ChromosomeArr ={
-    val operationProb = util.Random.nextDouble()
     var newPopulation = new ChromosomeArr(0)
     while (newPopulation.length < currentPopulation.length){
+      val operationProb = util.Random.nextDouble()
       if(operationProb < mutationProbability) newPopulation ++= performMutation(currentPopulation)
       else if(operationProb < mutationProbability + crossingProbability) newPopulation ++= performCrossing(currentPopulation)
-      else newPopulation ++= performReproduction(currentPopulation)
+      else newPopulation ++=performReproduction(currentPopulation)
     }
     newPopulation
   }
@@ -83,16 +83,16 @@ object Main {
     var firstGeneration = generateInitialPopulation(initialPopulationSize,
       (intervalBoundaries, significantDigitsNum, functionToOptimize))
     for(generation <- 0 until maxGenerationsNum){
-      var firstGenerationFitness = populationFitness(firstGeneration)
-      var nextGeneration = fillNewPopulation(firstGeneration)
+      val nextGeneration = fillNewPopulation(firstGeneration)
       val (bestFitness, bestSoultion) = nextGeneration.map(
         x => {
           (x.fitness(), x.value())
         }
       ).sortWith(_._1 > _._1).maxBy(_._1)
-      println(s"Generation: ${generation}; bestFitness: ${bestFitness}; bestSolution: ${bestSoultion}")
+      println(s"Generation: ${generation}; bestValue: ${bestFitness}; bestX: ${bestSoultion}}")
       firstGeneration = nextGeneration
     }
+
 
   }
   def main(arguments: Array[String]): Unit = {

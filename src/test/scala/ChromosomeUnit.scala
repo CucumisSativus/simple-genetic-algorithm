@@ -36,4 +36,14 @@ class ChromosomeUnit extends FlatSpec with Matchers {
       chromosome2AfterCrossing.bits(i) should be(chromosome1.bits(i))
     }
   }
+  it should "return lower boundary when all bits are 0" in {
+    val chromosome = new Chromosome(chromosomeConfiguration)
+    chromosome._bits = Array.fill(chromosome.length)(0)
+    chromosome.value() should be(boundaries._1)
+  }
+  it should "return higher boundary when all bits are 1" in {
+    val chromosome = new Chromosome(chromosomeConfiguration)
+    chromosome._bits = Array.fill(chromosome.length)(1)
+    chromosome.value() should be(boundaries._2 +- scala.math.pow(10.0, (-1)*(significantDigits-1)))
+  }
 }

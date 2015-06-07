@@ -13,8 +13,8 @@ class Chromosome(boundaries: IntervalBoundaries, significantDigitsNum: Significa
     this(chromsomeConfiguration._1, chromsomeConfiguration._2, chromsomeConfiguration._3)
   }
 
-  private val _length = (calculateBitLength(boundaries, significantDigits))
-  private var _bits = (generateBits)
+  private val _length = (calculateBitLength(boundaries, significantDigitsNum))
+  var _bits = (generateBits)
   private val _intervalBegin = boundaries._1
   private val _intervalEnd = boundaries._2
   private val _significantDigits = significantDigitsNum
@@ -78,7 +78,7 @@ class Chromosome(boundaries: IntervalBoundaries, significantDigitsNum: Significa
   }
 
   def value(boundaries: IntervalBoundaries, significantDigitsNum: SignificantDigitsNum): Double = {
-    (boundaries._1 + bitsToDecimal() * (boundaries._2 - boundaries._1)) / (pow(2.toDouble, significantDigitsNum.toDouble) + 1)
+    boundaries._1 + (bitsToDecimal() * (boundaries._2 - boundaries._1)) / (pow(2.toDouble, _length.toDouble) + 1)
   }
 
   def value(): Double = value((intervalBegin, intervalEnd), significantDigits)

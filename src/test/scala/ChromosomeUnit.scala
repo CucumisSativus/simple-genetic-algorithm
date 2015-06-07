@@ -1,10 +1,13 @@
+import java.awt.font.ShapeGraphicAttribute
+
 import SGA.Chromosome
-import SGA.Main.{SignificantDigitsNum, IntervalBoundaries}
+import SGA.Main.{ChromsomeConfiguration, SignificantDigitsNum, IntervalBoundaries}
 import org.scalatest._
 class ChromosomeUnit extends FlatSpec with Matchers {
   val boundaries = new IntervalBoundaries(0.5, 2.5)
   val significantDigits : SignificantDigitsNum = 6
-  val chromosomeConfiguration = (boundaries, significantDigits)
+  def testFunction(x : Double): Double = x
+  val chromosomeConfiguration : ChromsomeConfiguration = (boundaries, significantDigits, testFunction)
 
   it should "mutate properly from 1 to 0" in {
     val chromosome = new Chromosome(chromosomeConfiguration)

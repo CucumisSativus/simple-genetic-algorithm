@@ -8,21 +8,97 @@ object Main {
   type IntervalBoundaries = (Double, Double)
   type SignificantDigitsNum = Int
   type ChromosomeArr = Array[Chromosome]
-  type ChromsomeConfiguration = (IntervalBoundaries, SignificantDigitsNum)
+  type ChromsomeConfiguration = (IntervalBoundaries, SignificantDigitsNum, (Double) => Double)
 
+  // algorithm constants
+  val intervalBoundaries = new IntervalBoundaries(0.5, 2.5)
+  val significantDigitsNum: SignificantDigitsNum = 6
+  val initialPopulationSize = 50
+  val mutationProbability = 0.3
+  val crossingProbability = 0.3
+  val reproductionProbability = 1- mutationProbability - crossingProbability
+  val maxGenerationsNum = 2500
+  val maxRunNum = 1
 
   def functionToOptimize(x: Double): Double ={
     (exp(x) * sin(10 * Pi * x) +1)/ (x +5)
   }
 
+  // global variables
+
+
+
   def generateInitialPopulation(initialPopulationSize : Int, configuration: ChromsomeConfiguration) : ChromosomeArr ={
     Array.fill(initialPopulationSize)(new Chromosome(configuration))
   }
+
+  def populationFitness(population: ChromosomeArr): Double ={
+    var sum : Double = 0
+    for(el <- population){
+      sum += el.fitness()
+    }
+    sum
+  }
+
+  def findSolutionOnRoulette(currentPopulation: ChromosomeArr): Chromosome ={
+    val probabilities = currentPopulation.map(
+      chromosome => {
+        (chromosome, chromosome.fitness()/populationFitness(currentPopulation))
+      }
+    )
+    var currentSum : Double = 0
+    val rouletteRoll = util.Random.nextDouble()
+    for(probability <- probabilities){
+      currentSum += probability._2
+      if(currentSum > rouletteRoll) return probability._1
+    }
+    probabilities.last._1 //shouldnt land here but anyway
+  }
+  def performMutation(currentPopulation: ChromosomeArr): ChromosomeArr ={
+    Array.fill(1)(findSolutionOnRoulette(currentPopulation).mutate).filter(_.isInDomain())
+  }
+  def performCrossing(currentPopulation: ChromosomeArr): ChromosomeArr ={
+    val (sol1, sol2) = findSolutionOnRoulette(currentPopulation).cross(findSolutionOnRoulette(currentPopulation))
+    val chromosomes = new ChromosomeArr(2)
+    chromosomes(0) = sol1
+    chromosomes(1) = sol2
+    chromosomes.filter(_.isInDomain())
+  }
+
+  def performReproduction(currrentPopulation: ChromosomeArr): ChromosomeArr ={
+    Array.fill(1)(findSolutionOnRoulette(currrentPopulation)).filter(_.isInDomain())
+  }
+  def fillNewPopulation(currentPopulation: ChromosomeArr): ChromosomeArr ={
+    val operationProb = util.Random.nextDouble()
+    var newPopulation = new ChromosomeArr(0)
+    while (newPopulation.length < currentPopulation.length){
+      if(operationProb < mutationProbability) newPopulation ++= performMutation(currentPopulation)
+      else if(operationProb < mutationProbability + crossingProbability) newPopulation ++= performCrossing(currentPopulation)
+      else newPopulation ++= performReproduction(currentPopulation)
+    }
+    newPopulation
+  }
+
+  def runSGA(runNumber: Int): Unit ={
+    var firstGeneration = generateInitialPopulation(initialPopulationSize,
+      (intervalBoundaries, significantDigitsNum, functionToOptimize))
+    for(generation <- 0 until maxGenerationsNum){
+      var firstGenerationFitness = populationFitness(firstGeneration)
+      var nextGeneration = fillNewPopulation(firstGeneration)
+      val (bestFitness, bestSoultion) = nextGeneration.map(
+        x => {
+          (x.fitness(), x.value())
+        }
+      ).sortWith(_._1 > _._1).maxBy(_._1)
+      println(s"Generation: ${generation}; bestFitness: ${bestFitness}; bestSolution: ${bestSoultion}")
+      firstGeneration = nextGeneration
+    }
+
+  }
   def main(arguments: Array[String]): Unit = {
-    val intervalBoundaries = new IntervalBoundaries(0.5, 2.5)
-    val significantDigitsNum: SignificantDigitsNum = 6
-    val initialPopulationSize = 50
-    val initialPopulation = generateInitialPopulation(initialPopulationSize, (intervalBoundaries, significantDigitsNum))
+    for(runNum <- 0 until maxRunNum){
+      runSGA(runNum)
+    }
   }
 }
 

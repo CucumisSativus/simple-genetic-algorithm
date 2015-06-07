@@ -82,6 +82,8 @@ object Main {
   def runSGA(runNumber: Int): Unit ={
     var firstGeneration = generateInitialPopulation(initialPopulationSize,
       (intervalBoundaries, significantDigitsNum, functionToOptimize))
+    var runBestX : Double = 0
+    var runBestFitness : Double = 0
     for(generation <- 0 until maxGenerationsNum){
       val nextGeneration = fillNewPopulation(firstGeneration)
       val (bestFitness, bestSoultion) = nextGeneration.map(
@@ -90,8 +92,14 @@ object Main {
         }
       ).sortWith(_._1 > _._1).maxBy(_._1)
       println(s"Generation: ${generation}; bestValue: ${bestFitness}; bestX: ${bestSoultion}}")
+      if(bestFitness > runBestFitness){
+        runBestX = bestSoultion
+        runBestFitness = bestFitness
+
+      }
       firstGeneration = nextGeneration
     }
+    println(s"Run ${runNumber}: bestX: ${runBestX}, bestFitness: ${runBestFitness}")
 
 
   }
